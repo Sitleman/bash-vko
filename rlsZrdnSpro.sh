@@ -263,6 +263,10 @@ while true; do
 			save_target_stage "-2" # цель неподходящего типа
 			continue
 		fi
+		if [[ $stage -eq 3 ]]; then
+			save_target_stage "4" # был произведен выстрел по цели, ожидание в еще один такт, чтобы удостовериться, что цель больше не сгенирируется
+			continue
+		fi
 
 		# send_log "Определена цель ID:$target_id X:$target_x Y:$target_y XP:$target_prev_x YP:$target_prev_y Stage:$stage."
 		target_speed=$(find_speed $target_x $target_y $target_prev_x $target_prev_y)
@@ -277,11 +281,11 @@ while true; do
 			if [[ $ST_TYPE == $STATION_TYPE_RLS && $(is_target_direct_to_spro) -eq 1 ]]; then
 				send_log "Бал.блок ID:$target_id движится в направлении SPRO."
 			fi
-		elif [ $stage -eq 3 ]; then
-			send_log "Промах по цели ID:$target_id."
-		fi
 		# elif [ $stage -eq 2 ]; then 
 		# 	send_log "Веду цель ID:$target_id X:$target_x Y:$target_y Speed:$target_speed Type:$target_type."
+		elif [ $stage -eq 4 ]; then
+			send_log "Промах по цели ID:$target_id."
+		fi
 
 		if [ $(is_can_shoot) -eq 1 ]; then
 			shoot $target_id
@@ -297,7 +301,7 @@ while true; do
 		get_target_stage $target_id "0"
 		if [ $stage -eq 2 ]; then
 			send_message $ST_NAME $STATION_KP $MESSAGE_TYPE_LOG "Цель потеряна ID:$target_id."
-		elif [ $stage -eq 3 ]; then
+		elif [[ $stage -eq 3 || $stage -eq 4 ]]; then
 			send_message $ST_NAME $STATION_KP $MESSAGE_TYPE_LOG "Цель уничтожена ID:$target_id."
 		fi
 
